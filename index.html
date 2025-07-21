@@ -2,163 +2,176 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8">
-  <title>Love 3D</title>
+  <title>Không gian tình yêu 3D ❤️</title>
   <style>
     html, body {
       margin: 0;
       overflow: hidden;
       height: 100%;
-      background: url('nen.png') no-repeat center center fixed;
+    }
+
+    body {
+      background: url('nen.jpg') no-repeat center center fixed;
       background-size: cover;
     }
 
-    .text {
+    #playBtn {
       position: absolute;
-      font-size: 20px;
-      font-weight: bold;
-      white-space: nowrap;
-      pointer-events: none;
-      animation: float 20s linear infinite;
-    }
-
-    .image {
-      position: absolute;
-      width: 100px;
-      height: 140px;
-      border-radius: 10px;
-      animation: float 25s linear infinite;
-      object-fit: cover;
-    }
-
-    @keyframes float {
-      0% { transform: translateZ(0px) rotate(0deg); }
-      100% { transform: translateZ(800px) rotate(360deg); }
-    }
-
-    #audioControl {
-      position: fixed;
       top: 20px;
       left: 20px;
-      z-index: 100;
-      background: rgba(255, 255, 255, 0.3);
-      padding: 10px;
-      border-radius: 10px;
+      z-index: 10;
+      background: rgba(255, 255, 255, 0.2);
       color: white;
-      font-weight: bold;
-      font-family: sans-serif;
+      border: none;
+      padding: 10px 20px;
+      font-size: 16px;
+      border-radius: 8px;
+      cursor: pointer;
     }
 
     .heart {
-      position: absolute;
+      position: fixed;
+      top: -30px;
       font-size: 20px;
-      animation: fall linear infinite;
       user-select: none;
       pointer-events: none;
+      animation: fall linear infinite, colorChange 2s infinite alternate;
+      z-index: 9;
     }
 
     @keyframes fall {
-      0% {
-        transform: translateY(-100px);
-        opacity: 1;
-      }
-      100% {
+      to {
         transform: translateY(110vh);
         opacity: 0;
       }
+    }
+
+    @keyframes colorChange {
+      0%   { color: #ff4d4d; }
+      25%  { color: #4dd2ff; }
+      50%  { color: #85e085; }
+      75%  { color: #ffcc00; }
+      100% { color: #d966ff; }
+    }
+
+    canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 5;
     }
   </style>
 </head>
 <body>
 
-<div id="audioControl">🎵 Đang phát nhạc tình yêu...</div>
-<audio id="bgm" autoplay loop></audio>
+<button id="playBtn">▶️ Phát nhạc</button>
+<audio id="bgm" loop>
+  <source src="nhac1.mp3" type="audio/mp3">
+</audio>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/0.152.2/three.min.js"></script>
+<script src="https://threejs.org/examples/js/controls/TrackballControls.js"></script>
 
 <script>
   const messages = [
-    "Yêu em nhiều lắm", "Em là định mệnh", "Bên em là đủ Anh cần em",
-    "Em là tất cả yêu em", "Chỉ yêu mỗi mình em", "Luôn nhớ em", "Vì em anh tồn tại", "Vì A Yeu Baby Cụa Anh"
+    "Em là tất cả 💕", "Yêu em nhiều lắm 😘", "Chỉ cần em là đủ", "Mãi bên nhau 💖",
+    "Anh yêu em 💗", "Luôn nhớ em 🌹", "Em là định mệnh", "Anh Yeu Ebe Cua Anh Nhiu💗"
   ];
 
-  const colors = ["#ff69b4", "#00ffff", "#00ff00", "#ffa500", "#ff0000", "#e6e6fa", "#ffff00"];
-  const images = ["1.jpg", "2.jpg", "3.jpg", "4.jpg", "5.jpg"];
-  const songs = ["nhac1.mp3", "nhac2.mp3", "nhac3.mp3"];
+  const imagePaths = ["1.jpg", "2.jpg", "3.jpg", "4.jpg", "5.jpg"];
+  const loader = new THREE.TextureLoader();
 
-  const audio = document.getElementById("bgm");
-  audio.src = songs[Math.floor(Math.random() * songs.length)];
-  audio.volume = 0.7;
+  // Khởi tạo scene
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 2000);
+  camera.position.z = 400;
 
-  function randomPosition() {
-    return {
-      x: Math.random() * window.innerWidth,
-      y: Math.random() * window.innerHeight,
-      z: Math.random() * 800
-    };
-  }
+  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setClearColor(0x000000, 0); // Transparent background
+  document.body.appendChild(renderer.domElement);
 
-  function createText() {
-    const div = document.createElement("div");
-    div.className = "text";
-    div.innerText = messages[Math.floor(Math.random() * messages.length)];
-    const pos = randomPosition();
-    div.style.left = `${pos.x}px`;
-    div.style.top = `${pos.y}px`;
-    div.style.color = colors[Math.floor(Math.random() * colors.length)];
-    div.style.transform = `translateZ(${pos.z}px)`;
-    document.body.appendChild(div);
-    return div;
-  }
+  // Điều khiển xoay
+  const controls = new THREE.TrackballControls(camera, renderer.domElement);
+  controls.rotateSpeed = 2.0;
+  controls.zoomSpeed = 1.2;
+  controls.panSpeed = 0.8;
 
-  function createImage() {
-    const img = document.createElement("img");
-    img.className = "image";
-    img.src = images[Math.floor(Math.random() * images.length)];
-    const pos = randomPosition();
-    img.style.left = `${pos.x}px`;
-    img.style.top = `${pos.y}px`;
-    img.style.transform = `translateZ(${pos.z}px)`;
-    document.body.appendChild(img);
-    return img;
-  }
+  // Tải font và tạo chữ 3D
+  const fontLoader = new THREE.FontLoader();
+  fontLoader.load('https://threejs.org/examples/fonts/helvetiker_bold.typeface.json', function(font) {
+    for (let i = 0; i < 50; i++) {
+      const textGeo = new THREE.TextGeometry(messages[Math.floor(Math.random() * messages.length)], {
+        font: font,
+        size: 16,
+        height: 1,
+        curveSegments: 12,
+      });
+      const material = new THREE.MeshBasicMaterial({ color: Math.random() * 0xffffff });
+      const textMesh = new THREE.Mesh(textGeo, material);
 
-  const elements = [];
+      textMesh.position.x = (Math.random() - 0.5) * 1000;
+      textMesh.position.y = (Math.random() - 0.5) * 1000;
+      textMesh.position.z = (Math.random() - 0.5) * 1000;
 
-  for (let i = 0; i < 30; i++) {
-    elements.push(createText());
-    if (i % 4 === 0) elements.push(createImage());
-  }
+      scene.add(textMesh);
+    }
+  });
 
-  // Đổi màu chữ mỗi 5s
-  setInterval(() => {
-    elements.forEach(el => {
-      if (el.className === "text") {
-        el.style.color = colors[Math.floor(Math.random() * colors.length)];
+  // Thêm ảnh nổi bay
+  imagePaths.forEach((img) => {
+    loader.load(img, (texture) => {
+      const geometry = new THREE.PlaneGeometry(60, 80);
+      const material = new THREE.MeshBasicMaterial({ map: texture, transparent: true });
+      for (let i = 0; i < 5; i++) {
+        const mesh = new THREE.Mesh(geometry, material);
+        mesh.position.set(
+          (Math.random() - 0.5) * 1000,
+          (Math.random() - 0.5) * 1000,
+          (Math.random() - 0.5) * 1000
+        );
+        scene.add(mesh);
       }
     });
-  }, 5000);
+  });
 
-  // ==== HIỆU ỨNG TRÁI TIM RƠI ====
+  // Animate scene
+  function animate() {
+    requestAnimationFrame(animate);
+    controls.update();
+    renderer.render(scene, camera);
+  }
+  animate();
 
-  const heartColors = ["#ff1493", "#ff0000", "#ff69b4", "#ff6347", "#db7093", "#ff4500"];
-  let currentHeartColor = 0;
+  // Resize responsive
+  window.addEventListener('resize', () => {
+    camera.aspect = window.innerWidth/window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    controls.handleResize();
+  });
 
+  // Nhạc
+  const audio = document.getElementById("bgm");
+  const btn = document.getElementById("playBtn");
+  btn.onclick = () => {
+    audio.play();
+    btn.remove();
+  };
+
+  // Trái tim rơi đổi màu
   function createHeart() {
     const heart = document.createElement("div");
     heart.className = "heart";
-    heart.innerText = "❤";
+    heart.textContent = "❤";
     heart.style.left = Math.random() * window.innerWidth + "px";
-    heart.style.top = "-20px";
-    heart.style.fontSize = (Math.random() * 20 + 10) + "px";
-    heart.style.color = heartColors[currentHeartColor];
-    heart.style.animationDuration = (Math.random() * 3 + 3) + "s";
+    heart.style.fontSize = (16 + Math.random() * 24) + "px";
+    heart.style.animationDuration = (3 + Math.random() * 3) + "s";
     document.body.appendChild(heart);
-
-    setTimeout(() => heart.remove(), 7000);
+    setTimeout(() => heart.remove(), 6000);
   }
 
-  setInterval(createHeart, 150); // Mỗi 150ms tạo trái tim
-  setInterval(() => {
-    currentHeartColor = (currentHeartColor + 1) % heartColors.length;
-  }, 2000); // Đổi màu trái tim mỗi 2 giây
+  setInterval(createHeart, 200);
 </script>
 
 </body>
